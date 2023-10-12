@@ -137,12 +137,12 @@ class AutoRun:
         if get_time() - boy.start_time > 5.0:
             boy.state_machine.handle_event(('TIME_OUT', 0))
 
-        boy.x += boy.dir * 5
+        boy.x += boy.dir * 15
 
 
     @staticmethod
     def draw(boy):
-        boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100, boy.x, boy.y)
+        boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100, boy.x + 25, boy.y + 25,200,200)
 
 
 class StateMachine:
