@@ -2,7 +2,7 @@
 import math
 
 from pico2d import load_image, get_time
-from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT
+from sdl2 import SDL_KEYDOWN, SDLK_SPACE, SDLK_RIGHT, SDL_KEYUP, SDLK_LEFT, SDLK_a
 
 
 def space_down(e):
@@ -27,6 +27,12 @@ def left_down(e):
 
 def left_up(e):
     return e[0] == 'INPUT' and e[1].type == SDL_KEYUP and e[1].key == SDLK_LEFT
+
+def a_down(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_a
+
+def a_up(e):
+    return e[0] == 'INPUT' and e[1].type == SDL_KEYDOWN and e[1].key == SDLK_a
 
 class Idle:
 
@@ -103,14 +109,39 @@ class Run:
     def draw(boy):
         boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100, boy.x, boy.y)
 
+class AutoRun:
+    @staticmethod
+    def enter(boy,e):
+        boy.dir, boy.action = 1, 1
+        boy.frame = 0
+        boy.start_time = get_time()
+        pass
+
+    @staticmethod
+    def exit(boy):
+        pass
+
+
+    @staticmethod
+    def do(boy):
+        boy.frame = (boy.frame + 1) % 8
+        boy.x += boy.dir * 5
+
+
+    @staticmethod
+    def draw(boy):
+        boy.image.clip_draw(boy.frame * 100, boy.action * 100, 100, 100, boy.x, boy.y)
+
+
 class StateMachine:
     def __init__(self, boy,):
         self.boy = boy
         self.cur_state = Idle
         self.table = {
-            Idle: {right_down: Run, left_down: Run, left_up: Run, right_up: Run, time_out: Sleep},
-            Run: {right_down: Idle, left_down: Idle, right_up: Idle, left_up: Idle},
-            Sleep: {right_down: Run, left_down: Run, right_up: Run, left_up: Run, space_down: Idle}
+            Idle: {right_down: Run, left_down: Run, left_up: Run, right_up: Run, time_out: Sleep, a_down: AutoRun, a_up: AutoRun},
+            Run: {right_down: Idle, left_down: Idle, right_up: Idle, left_up: Idle, a_down: AutoRun, a_up: AutoRun},
+            Sleep: {right_down: Run, left_down: Run, right_up: Run, left_up: Run, space_down: Idle, a_down: AutoRun, a_up: AutoRun},
+            AutoRun: {time_out: Idle}
         }
 
     def start(self):
@@ -131,9 +162,6 @@ class StateMachine:
 
     def draw(self):
         self.cur_state.draw(self.boy)
-
-
-
 
 
 class Boy:
